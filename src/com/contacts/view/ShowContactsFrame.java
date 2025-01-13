@@ -10,6 +10,7 @@ import java.awt.*;
 
 public class ShowContactsFrame {
     private JFrame frame;
+
     private ContactDAO contactDAO;
 
     public ShowContactsFrame(String contactPhone) {
@@ -50,6 +51,10 @@ public class ShowContactsFrame {
         JPanel bottomPanel = new JPanel();
 
         JButton deleteContactButton = new JButton("Delete Contact");
+        deleteContactButton .setBackground(new Color(230, 185, 166));
+        deleteContactButton.setForeground(new Color(47, 54, 69));
+        deleteContactButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+
         deleteContactButton.addActionListener(e -> {
             int confirmation = JOptionPane.showConfirmDialog(
                     frame,

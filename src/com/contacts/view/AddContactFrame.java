@@ -24,8 +24,10 @@ public class AddContactFrame {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         frame.add(new JLabel("Name:"));
-        nameField = new JTextField();
+        nameField.setText("Name");
+        nameField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
         frame.add(nameField);
+
 
         frame.add(new JLabel("Phone Number:"));
         phoneField = new JTextField();
@@ -36,6 +38,9 @@ public class AddContactFrame {
         frame.add(emailField);
 
         JButton addButton = new JButton("Add");
+        addButton.setBackground(new Color(230, 185, 166));
+        addButton.setForeground(new Color(47, 54, 69));
+        addButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
         addButton.addActionListener(e -> addContact());
         frame.add(addButton);
 

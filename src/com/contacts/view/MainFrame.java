@@ -24,7 +24,6 @@ public class MainFrame {
         contactDAO = new ContactDAOImpl(DataBase.getDBInstance(DataBase.MYSQL));
         // Paths for the icons (Use relative paths or load as resources)
         String iconPath = "C:\\Users\\Aicha\\Documents\\Projects\\New one\\Contacts\\src\\img.png";
-        String labelPath = "src/img2.png";
 
         // Loading icons
         ImageIcon appIcon = new ImageIcon(iconPath);
@@ -57,8 +56,18 @@ public class MainFrame {
         // Search bar
         searchField = new JTextField();
         JButton searchButton = new JButton("Search");
-        JButton refreshButton = new JButton("Refresh");
+        JButton refreshButton = new JButton();
+        searchButton.setBackground(new Color(230, 185, 166));
+        searchButton.setForeground(new Color(47, 54, 69));
+        searchButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        searchButton.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
+        refreshButton.setBackground(new Color(230, 185, 166));
+        refreshButton.setForeground(new Color(47, 54, 69));
+        refreshButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        refreshButton.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
 
+        ImageIcon refIcon = new ImageIcon("C:\\Users\\Aicha\\Documents\\Projects\\New one\\Contacts\\src\\refresh.png");
+        refreshButton.setIcon(refIcon);
         searchButton.addActionListener(e -> searchContacts());
         refreshButton.addActionListener(e -> loadContacts());
 
@@ -75,7 +84,14 @@ public class MainFrame {
     private JScrollPane createTablePanel() {
         contactsTable = new JTable(new DefaultTableModel(
                 new Object[]{"ID", "Name", "Phone", "Email", "Action"}, 0
-        ));
+        )) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Only the "Action" column is editable
+                return column == 4;
+            }
+        };
+
         contactsTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
         contactsTable.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox()));
 
@@ -83,6 +99,7 @@ public class MainFrame {
         contactsTable.getColumnModel().getColumn(0).setMinWidth(0);
         contactsTable.getColumnModel().getColumn(0).setMaxWidth(0);
         contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+        contactsTable.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
 
         loadContacts();
 
@@ -94,6 +111,9 @@ public class MainFrame {
 
         JButton addContactButton = new JButton("Add Contact");
         addContactButton.addActionListener(e -> new AddContactFrame());
+        addContactButton.setBackground(new Color(230, 185, 166));
+        addContactButton.setForeground(new Color(47, 54, 69));
+        addContactButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
 
         bottomPanel.add(addContactButton);
 
@@ -118,6 +138,9 @@ public class MainFrame {
 
     private void searchContacts() {
         String keyword = searchField.getText();
+        searchField.setText("Search");
+        searchField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+
         List<Contact> contacts = contactDAO.searchContacts(keyword);
         DefaultTableModel model = (DefaultTableModel) contactsTable.getModel();
         model.setRowCount(0); // Clear existing data
@@ -132,14 +155,16 @@ public class MainFrame {
         contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MainFrame());
-    }
+
 }
 
 class ButtonRenderer extends JButton implements TableCellRenderer {
     public ButtonRenderer() {
         setOpaque(true);
+        setBackground(new Color(230, 185, 166));
+        setForeground(new Color(47, 54, 69));
+        setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
     }
 
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -159,6 +184,10 @@ class ButtonEditor extends DefaultCellEditor {
         super(checkBox);
         button = new JButton();
         button.setOpaque(true);
+        button.setBackground(new Color(230, 185, 166));
+        button.setForeground(new Color(47, 54, 69));
+        button.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        button.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
         button.addActionListener(e -> fireEditingStopped());
     }
 
@@ -169,7 +198,6 @@ class ButtonEditor extends DefaultCellEditor {
         button.setText(label);
         isPushed = true;
 
-        // Get the contact ID from the table model (assuming it's in the first column)
         contactPhone = (String) table.getModel().getValueAt(row, 3);
 
         return button;
@@ -178,7 +206,6 @@ class ButtonEditor extends DefaultCellEditor {
     @Override
     public Object getCellEditorValue() {
         if (isPushed) {
-            // Open the ShowContactsFrame with the specific contact ID
             SwingUtilities.invokeLater(() -> new ShowContactsFrame(contactPhone));
         }
         isPushed = false;
