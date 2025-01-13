@@ -38,7 +38,6 @@ public class MainFrame {
         mainFrame.getContentPane().setBackground(new Color(238, 237, 235));
         mainFrame.setTitle("Contacts");
 
-
         JPanel topPanel = createTopPanel();
         JScrollPane tablePanel = createTablePanel();
         JPanel bottomPanel = createBottomPanel();
@@ -58,13 +57,17 @@ public class MainFrame {
         // Search bar
         searchField = new JTextField();
         JButton searchButton = new JButton("Search");
+        JButton refreshButton = new JButton("Refresh");
+
         searchButton.addActionListener(e -> searchContacts());
+        refreshButton.addActionListener(e -> loadContacts());
 
         JPanel searchPanel = new JPanel(new BorderLayout());
         searchPanel.add(searchField, BorderLayout.CENTER);
         searchPanel.add(searchButton, BorderLayout.EAST);
 
         topPanel.add(searchPanel, BorderLayout.CENTER);
+        topPanel.add(refreshButton, BorderLayout.EAST); // Add the refresh button to the top panel
 
         return topPanel;
     }
@@ -76,7 +79,7 @@ public class MainFrame {
         contactsTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
         contactsTable.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox()));
 
-// Hide the ID column immediately after table creation
+        // Hide the ID column immediately after table creation
         contactsTable.getColumnModel().getColumn(0).setMinWidth(0);
         contactsTable.getColumnModel().getColumn(0).setMaxWidth(0);
         contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
@@ -94,10 +97,8 @@ public class MainFrame {
 
         bottomPanel.add(addContactButton);
 
-
         return bottomPanel;
     }
-
 
     private void loadContacts() {
         List<Contact> contacts = contactDAO.getContacts();
@@ -115,8 +116,6 @@ public class MainFrame {
         contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
     }
 
-
-
     private void searchContacts() {
         String keyword = searchField.getText();
         List<Contact> contacts = contactDAO.searchContacts(keyword);
@@ -124,8 +123,13 @@ public class MainFrame {
         model.setRowCount(0); // Clear existing data
 
         for (Contact contact : contacts) {
-            model.addRow(new Object[]{contact.getName(), contact.getPhoneNumber(), contact.getEmail(), "Show Info"});
+            model.addRow(new Object[]{contact.getId(), contact.getName(), contact.getPhoneNumber(), contact.getEmail(), "Show Info"});
         }
+
+        // Hide the contact ID column
+        contactsTable.getColumnModel().getColumn(0).setMinWidth(0);
+        contactsTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
     }
 
     public static void main(String[] args) {
