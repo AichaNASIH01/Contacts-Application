@@ -22,16 +22,27 @@ public class MainFrame {
 
     public MainFrame() {
         contactDAO = new ContactDAOImpl(DataBase.getDBInstance(DataBase.MYSQL));
+        // Paths for the icons (Use relative paths or load as resources)
+        String iconPath = "C:\\Users\\Aicha\\Documents\\Projects\\New one\\Contacts\\src\\img.png";
+        String labelPath = "src/img2.png";
+
+        // Loading icons
+        ImageIcon appIcon = new ImageIcon(iconPath);
 
         mainFrame = new JFrame("Contacts");
         mainFrame.setSize(800, 600);
         mainFrame.setLayout(new BorderLayout());
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.getContentPane().setBackground(new Color(238, 237, 235));
+        mainFrame.setIconImage(appIcon.getImage());
+        mainFrame.getContentPane().setBackground(new Color(238, 237, 235));
+        mainFrame.setTitle("Contacts");
+
 
         JPanel topPanel = createTopPanel();
         JScrollPane tablePanel = createTablePanel();
         JPanel bottomPanel = createBottomPanel();
+        topPanel.setBackground(new Color(147, 145, 133));
 
         mainFrame.add(topPanel, BorderLayout.NORTH);
         mainFrame.add(tablePanel, BorderLayout.CENTER);
@@ -59,9 +70,16 @@ public class MainFrame {
     }
 
     private JScrollPane createTablePanel() {
-        contactsTable = new JTable(new DefaultTableModel(new Object[]{"ID", "Name", "Phone", "Email", "Action"}, 0));
+        contactsTable = new JTable(new DefaultTableModel(
+                new Object[]{"ID", "Name", "Phone", "Email", "Action"}, 0
+        ));
         contactsTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
         contactsTable.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox()));
+
+// Hide the ID column immediately after table creation
+        contactsTable.getColumnModel().getColumn(0).setMinWidth(0);
+        contactsTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
 
         loadContacts();
 
@@ -76,8 +94,10 @@ public class MainFrame {
 
         bottomPanel.add(addContactButton);
 
+
         return bottomPanel;
     }
+
 
     private void loadContacts() {
         List<Contact> contacts = contactDAO.getContacts();
@@ -85,9 +105,17 @@ public class MainFrame {
         model.setRowCount(0); // Clear existing data
 
         for (Contact contact : contacts) {
+            // Add contact ID (hidden), Name, Phone, Email, and "Show Info" button
             model.addRow(new Object[]{contact.getId(), contact.getName(), contact.getPhoneNumber(), contact.getEmail(), "Show Info"});
         }
+
+        // Hide the contact ID column
+        contactsTable.getColumnModel().getColumn(0).setMinWidth(0);
+        contactsTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
     }
+
+
 
     private void searchContacts() {
         String keyword = searchField.getText();
@@ -96,7 +124,7 @@ public class MainFrame {
         model.setRowCount(0); // Clear existing data
 
         for (Contact contact : contacts) {
-            model.addRow(new Object[]{contact.getId(), contact.getName(), contact.getPhoneNumber(), contact.getEmail(), "Show Info"});
+            model.addRow(new Object[]{contact.getName(), contact.getPhoneNumber(), contact.getEmail(), "Show Info"});
         }
     }
 
@@ -121,41 +149,45 @@ class ButtonEditor extends DefaultCellEditor {
     private JButton button;
     private String label;
     private boolean isPushed;
-    private int contactId;
+    private String contactPhone; // Variable to store contact ID
 
     public ButtonEditor(JCheckBox checkBox) {
         super(checkBox);
         button = new JButton();
         button.setOpaque(true);
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                fireEditingStopped();
-            }
-        });
+        button.addActionListener(e -> fireEditingStopped());
     }
 
+    @Override
     public Component getTableCellEditorComponent(JTable table, Object value,
                                                  boolean isSelected, int row, int column) {
         label = (value == null) ? "" : value.toString();
         button.setText(label);
         isPushed = true;
-        contactId = (int) table.getValueAt(row, 0);
+
+        // Get the contact ID from the table model (assuming it's in the first column)
+        contactPhone = (String) table.getModel().getValueAt(row, 3);
+
         return button;
     }
 
+    @Override
     public Object getCellEditorValue() {
         if (isPushed) {
-            new ShowContactsFrame(contactId);
+            // Open the ShowContactsFrame with the specific contact ID
+            SwingUtilities.invokeLater(() -> new ShowContactsFrame(contactPhone));
         }
         isPushed = false;
         return label;
     }
 
+    @Override
     public boolean stopCellEditing() {
         isPushed = false;
         return super.stopCellEditing();
     }
 
+    @Override
     protected void fireEditingStopped() {
         super.fireEditingStopped();
     }

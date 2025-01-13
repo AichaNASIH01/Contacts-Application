@@ -47,7 +47,7 @@ public class AddContactFrame {
         String phone = phoneField.getText();
         String email = emailField.getText();
 
-        Contact contact = new Contact(0, name, phone, email);
+        Contact contact = new Contact(name, phone, email);
         contactDAO.addContact(contact);
         JOptionPane.showMessageDialog(frame, "Contact added successfully!");
     }

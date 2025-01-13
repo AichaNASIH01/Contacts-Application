@@ -9,5 +9,5 @@ public interface ContactDAO {
     void deleteContact(Contact contact);
     List<Contact> getContacts();
     List<Contact> searchContacts(String keyword);
-    Contact getContactById(int id); // Add this method
+    Contact getContactByPhone(String phoneNumber); // Add this method
 }

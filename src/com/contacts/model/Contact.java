@@ -6,7 +6,7 @@ public class Contact {
     private String Name;
     private String phoneNumber;
     private String email;
-    public Contact(int id, String name, String phoneNumber, String email) {
+    public Contact(String name, String phoneNumber, String email) {
         this.id = serial++;
         this.Name = name;
         this.phoneNumber = phoneNumber;

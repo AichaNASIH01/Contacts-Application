@@ -127,14 +127,17 @@ public class DataBase {
             System.out.println("Insert successful.");
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) { // Duplicate entry error
-                System.err.println("Duplicate entry: " + e.getMessage());
-                throw new RuntimeException("A record with the same unique field already exists.");
+                if (e.getMessage().contains("phoneNumber")) {
+                    throw new RuntimeException("A record with the same unique field already exists.");
+                } else {
+                    System.err.println("Duplicate entry: " + e.getMessage());
+
+                }
             } else {
                 System.err.println("SQL Error: " + e.getMessage());
                 throw new RuntimeException("Error during insertion: " + e.getMessage());
             }
-        }
-    }
+    }}
 
 
     public void update(String table, String[] columns, String[] values, String condition) {

@@ -41,10 +41,16 @@ public class ContactDAOImpl implements ContactDAO {
 
     @Override
     public void deleteContact(Contact contact) {
-        String table = "contacts";
-        String condition = "id = " + contact.getId();
-        db.delete(table, condition);
+        String query = "DELETE FROM contacts WHERE phoneNumber = ? OR name = ?";
+        try (PreparedStatement pstmt = db.getConnection().prepareStatement(query)) {
+            pstmt.setString(1, contact.getPhoneNumber());
+            pstmt.setString(2, contact.getName());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public List<Contact> getContacts() {
@@ -55,7 +61,6 @@ public class ContactDAOImpl implements ContactDAO {
             ResultSet rs = db.getConnection().createStatement().executeQuery(query);
             while (rs.next()) {
                 Contact contact = new Contact(
-                        rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("email"),
                         rs.getString("phoneNumber")
@@ -81,7 +86,6 @@ public class ContactDAOImpl implements ContactDAO {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 contacts.add(new Contact(
-                        rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("email"),
                         rs.getString("phoneNumber")
@@ -94,15 +98,15 @@ public class ContactDAOImpl implements ContactDAO {
     }
 
     @Override
-    public Contact getContactById(int id) {
-        String query = "SELECT id, name, email, phoneNumber FROM contacts WHERE id = ?";
+    public Contact getContactByPhone(String phoneNumber) {
+        String query = "SELECT id, name, email, phoneNumber FROM contacts WHERE phoneNumber = ?";
         Contact contact = null;
         try (PreparedStatement pstmt = db.getConnection().prepareStatement(query)) {
-            pstmt.setInt(1, id);
+            pstmt.setString(1, phoneNumber);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 contact = new Contact(
-                        rs.getInt("id"),
+
                         rs.getString("name"),
                         rs.getString("email"),
                         rs.getString("phoneNumber")
@@ -111,6 +115,7 @@ public class ContactDAOImpl implements ContactDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        System.out.println("Fetched Contact: " + (contact != null ? contact.getName() : "null"));
         return contact;
     }
 }
