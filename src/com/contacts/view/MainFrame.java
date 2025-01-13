@@ -1,166 +1,162 @@
 package com.contacts.view;
 
+import com.contacts.model.Contact;
+import com.contacts.repository.ContactDAO;
+import com.contacts.repository.ContactDAOImpl;
+import com.contacts.DataBase.DataBase;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class MainFrame {
 
     private JFrame mainFrame;
-    private JTable contactTable;
-    private DefaultTableModel tableModel;
+    private JTable contactsTable;
+    private JTextField searchField;
+    private ContactDAO contactDAO;
 
     public MainFrame() {
-        // Paths for the icons (Use relative paths or load as resources)
-        String iconPath = "src/img.png";
-        String labelPath = "src/img2.png";
+        contactDAO = new ContactDAOImpl(DataBase.getDBInstance(DataBase.MYSQL));
 
-        // Loading icons
-        ImageIcon appIcon = new ImageIcon(iconPath);
-
-        // Create and configure the main frame
-        mainFrame = new JFrame();
-        mainFrame.setSize(600, 600);
-        mainFrame.setLayout(null);
+        mainFrame = new JFrame("Contacts");
+        mainFrame.setSize(800, 600);
+        mainFrame.setLayout(new BorderLayout());
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setTitle("Contacts");
         mainFrame.getContentPane().setBackground(new Color(238, 237, 235));
-        mainFrame.setIconImage(appIcon.getImage());
 
-        // Adding the top panel
-        JPanel topPanel = createTopPanel(labelPath);
-        mainFrame.add(topPanel);
+        JPanel topPanel = createTopPanel();
+        JScrollPane tablePanel = createTablePanel();
+        JPanel bottomPanel = createBottomPanel();
 
-        // Adding the contact form
-        JPanel formPanel = createFormPanel();
-        mainFrame.add(formPanel);
+        mainFrame.add(topPanel, BorderLayout.NORTH);
+        mainFrame.add(tablePanel, BorderLayout.CENTER);
+        mainFrame.add(bottomPanel, BorderLayout.SOUTH);
 
-        // Adding the contact table
-        JPanel tablePanel = createTablePanel();
-        mainFrame.add(tablePanel);
-
-        // Adding the action buttons
-        JPanel buttonPanel = createButtonPanel();
-        mainFrame.add(buttonPanel);
-
-        // Making the frame visible after all components are added
         mainFrame.setVisible(true);
     }
 
-    private JPanel createTopPanel(String labelPath) {
-        // Load the icon for the title label
-        ImageIcon titleIcon = new ImageIcon(labelPath);
-
-        // Configure the top panel
+    private JPanel createTopPanel() {
         JPanel topPanel = new JPanel();
-        topPanel.setBackground(new Color(147, 145, 133));
-        topPanel.setBounds(0, 0, 600, 50);
-        topPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setLayout(new BorderLayout());
 
-        // Configure the title label
-        JLabel title = new JLabel("Contact");
-        title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
-        title.setIcon(titleIcon);
+        // Search bar
+        searchField = new JTextField();
+        JButton searchButton = new JButton("Search");
+        searchButton.addActionListener(e -> searchContacts());
 
-        // Add the title label to the top panel
-        topPanel.add(title);
+        JPanel searchPanel = new JPanel(new BorderLayout());
+        searchPanel.add(searchField, BorderLayout.CENTER);
+        searchPanel.add(searchButton, BorderLayout.EAST);
+
+        topPanel.add(searchPanel, BorderLayout.CENTER);
+
         return topPanel;
     }
 
-    private JPanel createFormPanel() {
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridLayout(3, 2, 10, 10));
-        formPanel.setBounds(20, 60, 560, 100);
+    private JScrollPane createTablePanel() {
+        contactsTable = new JTable(new DefaultTableModel(new Object[]{"ID", "Name", "Phone", "Email", "Action"}, 0));
+        contactsTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
+        contactsTable.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox()));
 
-        // Add labels and text fields
-        formPanel.add(new JLabel("Name:"));
-        JTextField nameField = new JTextField();
-        formPanel.add(nameField);
+        loadContacts();
 
-        formPanel.add(new JLabel("Phone:"));
-        JTextField phoneField = new JTextField();
-        formPanel.add(phoneField);
-
-        formPanel.add(new JLabel("Email:"));
-        JTextField emailField = new JTextField();
-        formPanel.add(emailField);
-
-        return formPanel;
+        return new JScrollPane(contactsTable);
     }
 
-    private JPanel createTablePanel() {
-        JPanel tablePanel = new JPanel();
-        tablePanel.setBounds(20, 180, 560, 300);
+    private JPanel createBottomPanel() {
+        JPanel bottomPanel = new JPanel();
 
-        // Configure the table
-        String[] columnNames = {"ID", "Name", "Phone", "Email"};
-        tableModel = new DefaultTableModel(columnNames, 0);
-        contactTable = new JTable(tableModel);
-        contactTable.setFillsViewportHeight(true);
+        JButton addContactButton = new JButton("Add Contact");
+        addContactButton.addActionListener(e -> new AddContactFrame());
 
-        JScrollPane scrollPane = new JScrollPane(contactTable);
-        tablePanel.setLayout(new BorderLayout());
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        bottomPanel.add(addContactButton);
 
-        return tablePanel;
+        return bottomPanel;
     }
 
-    private JPanel createButtonPanel() {
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.setBounds(20, 500, 560, 50);
+    private void loadContacts() {
+        List<Contact> contacts = contactDAO.getContacts();
+        DefaultTableModel model = (DefaultTableModel) contactsTable.getModel();
+        model.setRowCount(0); // Clear existing data
 
-        // Add buttons
-        JButton addButton = new JButton("Add");
-        JButton updateButton = new JButton("Update");
-        JButton deleteButton = new JButton("Delete");
-        JButton viewButton = new JButton("View");
+        for (Contact contact : contacts) {
+            model.addRow(new Object[]{contact.getId(), contact.getName(), contact.getPhoneNumber(), contact.getEmail(), "Show Info"});
+        }
+    }
 
-        buttonPanel.add(addButton);
-        buttonPanel.add(updateButton);
-        buttonPanel.add(deleteButton);
-        buttonPanel.add(viewButton);
+    private void searchContacts() {
+        String keyword = searchField.getText();
+        List<Contact> contacts = contactDAO.searchContacts(keyword);
+        DefaultTableModel model = (DefaultTableModel) contactsTable.getModel();
+        model.setRowCount(0); // Clear existing data
 
-        // Add action listeners for buttons
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Add logic to add a contact
-                System.out.println("Add button clicked!");
-            }
-        });
-
-        updateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Add logic to update a contact
-                System.out.println("Update button clicked!");
-            }
-        });
-
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Add logic to delete a contact
-                System.out.println("Delete button clicked!");
-            }
-        });
-
-        viewButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Add logic to view contacts
-                System.out.println("View button clicked!");
-            }
-        });
-
-        return buttonPanel;
+        for (Contact contact : contacts) {
+            model.addRow(new Object[]{contact.getId(), contact.getName(), contact.getPhoneNumber(), contact.getEmail(), "Show Info"});
+        }
     }
 
     public static void main(String[] args) {
-        // Launch the application
         SwingUtilities.invokeLater(() -> new MainFrame());
+    }
+}
+
+class ButtonRenderer extends JButton implements TableCellRenderer {
+    public ButtonRenderer() {
+        setOpaque(true);
+    }
+
+    public Component getTableCellRendererComponent(JTable table, Object value,
+                                                   boolean isSelected, boolean hasFocus, int row, int column) {
+        setText((value == null) ? "" : value.toString());
+        return this;
+    }
+}
+
+class ButtonEditor extends DefaultCellEditor {
+    private JButton button;
+    private String label;
+    private boolean isPushed;
+    private int contactId;
+
+    public ButtonEditor(JCheckBox checkBox) {
+        super(checkBox);
+        button = new JButton();
+        button.setOpaque(true);
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                fireEditingStopped();
+            }
+        });
+    }
+
+    public Component getTableCellEditorComponent(JTable table, Object value,
+                                                 boolean isSelected, int row, int column) {
+        label = (value == null) ? "" : value.toString();
+        button.setText(label);
+        isPushed = true;
+        contactId = (int) table.getValueAt(row, 0);
+        return button;
+    }
+
+    public Object getCellEditorValue() {
+        if (isPushed) {
+            new ShowContactsFrame(contactId);
+        }
+        isPushed = false;
+        return label;
+    }
+
+    public boolean stopCellEditing() {
+        isPushed = false;
+        return super.stopCellEditing();
+    }
+
+    protected void fireEditingStopped() {
+        super.fireEditingStopped();
     }
 }
