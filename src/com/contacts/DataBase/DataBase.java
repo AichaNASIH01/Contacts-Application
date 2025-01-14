@@ -121,7 +121,12 @@ public class DataBase {
 
         try (PreparedStatement pstmt = con.prepareStatement(query.toString())) {
             for (int i = 0; i < values.length; i++) {
-                pstmt.setString(i + 1, values[i]);
+                // Convert empty strings to null for the email field
+                if (columns[i].equalsIgnoreCase("email") && values[i].isEmpty()) {
+                    pstmt.setNull(i + 1, Types.VARCHAR);
+                } else {
+                    pstmt.setString(i + 1, values[i]);
+                }
             }
             pstmt.executeUpdate();
             System.out.println("Insert successful.");
@@ -131,14 +136,13 @@ public class DataBase {
                     throw new RuntimeException("A record with the same unique field already exists.");
                 } else {
                     System.err.println("Duplicate entry: " + e.getMessage());
-
                 }
             } else {
                 System.err.println("SQL Error: " + e.getMessage());
                 throw new RuntimeException("Error during insertion: " + e.getMessage());
             }
-    }}
-
+        }
+    }
 
     public void update(String table, String[] columns, String[] values, String condition) {
         if (columns.length != values.length) {
