@@ -6,11 +6,12 @@ import com.contacts.repository.ContactDAOImpl;
 import com.contacts.DataBase.DataBase;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.List;
 
 public class MainFrame {
@@ -24,6 +25,7 @@ public class MainFrame {
         contactDAO = new ContactDAOImpl(DataBase.getDBInstance(DataBase.MYSQL));
         // Paths for the icons (Use relative paths or load as resources)
         String iconPath = "C:\\Users\\Aicha\\Documents\\Projects\\New one\\Contacts\\src\\img.png";
+        String labelPath = "src/img2.png";
 
         // Loading icons
         ImageIcon appIcon = new ImageIcon(iconPath);
@@ -53,18 +55,42 @@ public class MainFrame {
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
 
+        // Create a custom rounded border
+        Border roundedBorder = BorderFactory.createLineBorder(new Color(47, 54, 69), 1, true);
+
         // Search bar
         searchField = new JTextField();
-        JButton searchButton = new JButton("Search");
-        JButton refreshButton = new JButton();
-        searchButton.setBackground(new Color(230, 185, 166));
+        searchField.setText("Search...");
+        searchField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        searchField.setForeground(Color.GRAY);
+        searchField.setBorder(roundedBorder);
+        searchField.setPreferredSize(new Dimension(150, 25)); // Set preferred size to make it smaller
+        searchField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (searchField.getText().equals("Search...")) {
+                    searchField.setText("");
+                    searchField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (searchField.getText().isEmpty()) {
+                    searchField.setForeground(Color.GRAY);
+                    searchField.setText("Search...");
+                }
+            }
+        });
+
+        GradientButton1 searchButton = new GradientButton1("Search", new Color(230, 185, 166), new Color(230, 185, 166).darker());
+        GradientButton1 refreshButton = new GradientButton1("", new Color(230, 185, 166), new Color(230, 185, 166).darker());
         searchButton.setForeground(new Color(47, 54, 69));
         searchButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-        searchButton.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
-        refreshButton.setBackground(new Color(230, 185, 166));
+        searchButton.setBorder(roundedBorder);
         refreshButton.setForeground(new Color(47, 54, 69));
         refreshButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-        refreshButton.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
+        refreshButton.setBorder(roundedBorder);
 
         ImageIcon refIcon = new ImageIcon("C:\\Users\\Aicha\\Documents\\Projects\\New one\\Contacts\\src\\refresh.png");
         refreshButton.setIcon(refIcon);
@@ -109,11 +135,11 @@ public class MainFrame {
     private JPanel createBottomPanel() {
         JPanel bottomPanel = new JPanel();
 
-        JButton addContactButton = new JButton("Add Contact");
+        GradientButton1 addContactButton = new GradientButton1("Add Contact", new Color(230, 185, 166), new Color(230, 185, 166).darker());
         addContactButton.addActionListener(e -> new AddContactFrame());
-        addContactButton.setBackground(new Color(230, 185, 166));
         addContactButton.setForeground(new Color(47, 54, 69));
         addContactButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        addContactButton.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1, true));
 
         bottomPanel.add(addContactButton);
 
@@ -140,6 +166,7 @@ public class MainFrame {
         String keyword = searchField.getText();
         searchField.setText("Search");
         searchField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        searchField.setPreferredSize(new Dimension(10, 25));
 
         List<Contact> contacts = contactDAO.searchContacts(keyword);
         DefaultTableModel model = (DefaultTableModel) contactsTable.getModel();
@@ -155,7 +182,9 @@ public class MainFrame {
         contactsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
     }
 
-
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MainFrame());
+    }
 }
 
 class ButtonRenderer extends JButton implements TableCellRenderer {
@@ -164,7 +193,7 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
         setBackground(new Color(230, 185, 166));
         setForeground(new Color(47, 54, 69));
         setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-        setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
+        setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1, true));
     }
 
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -187,7 +216,7 @@ class ButtonEditor extends DefaultCellEditor {
         button.setBackground(new Color(230, 185, 166));
         button.setForeground(new Color(47, 54, 69));
         button.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-        button.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(47, 54, 69), 1, true));
         button.addActionListener(e -> fireEditingStopped());
     }
 
@@ -221,5 +250,33 @@ class ButtonEditor extends DefaultCellEditor {
     @Override
     protected void fireEditingStopped() {
         super.fireEditingStopped();
+    }
+}
+
+class GradientButton extends JButton {
+
+    private Color startColor;
+    private Color endColor;
+
+    public GradientButton(String text, Color startColor, Color endColor) {
+        super(text);
+        this.startColor = startColor;
+        this.endColor = endColor;
+        setContentAreaFilled(false); // Disable default button background
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g.create();
+        int width = getWidth();
+        int height = getHeight();
+
+        // Draw the gradient background
+        GradientPaint gradientPaint = new GradientPaint(0, 0, startColor, 0, height, endColor);
+        g2d.setPaint(gradientPaint);
+        g2d.fillRect(0, 0, width, height);
+        g2d.dispose();
+
+        super.paintComponent(g);
     }
 }
