@@ -28,7 +28,4 @@ public class ContactService {
         contactDAO.deleteContact(contact);
     }
 
-    public List<Contact> searchContacts(String keyword) {
-        return contactDAO.searchContacts(keyword);
-    }
 }

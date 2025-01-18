@@ -73,8 +73,4 @@ public class ShowContactsFrame {
         return bottomPanel;
     }
 
-    public static void main(String[] args) {
-        // This is just an example to show how to open the frame
-        SwingUtilities.invokeLater(() -> new ShowContactsFrame("1234567890"));
-    }
 }
